@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Weekly Focus Planner – Printable PDF</title>
+<meta name="description" content="A printable weekly planner PDF. Buy once, print as many times as you like.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#f6f8fb; --ink:#14213d; --muted:#4d5b78; --line:#d9e0ec; --accent:#ffc233; --paper:#fff; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0f1626; --ink:#eef2fa; --muted:#9aa8c4; --line:#27324b; --paper:#172036; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:"Familjen Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif; font-size:1.08rem; line-height:1.6; }
+  .wrap { max-width:960px; margin:0 auto; padding:0 1.5rem; }
+  header { padding:1.25rem 0; font-weight:700; }
+  .hero { display:grid; grid-template-columns:1.1fr 0.9fr; gap:3rem; align-items:center; padding:3rem 0 4rem; }
+  h1 { font-size:clamp(2.4rem,7vw,4.2rem); line-height:1; letter-spacing:-0.03em; margin:0 0 1rem; }
+  .lead { color:var(--muted); max-width:36ch; margin:0 0 1.75rem; }
+  .price { font-size:2rem; font-weight:700; margin:0 0 1rem; }
+  .price small { font-size:1rem; font-weight:400; color:var(--muted); }
+  .btn { display:inline-block; background:var(--accent); color:#14213d; font-weight:700; font-size:1.15rem; padding:0.9rem 2rem; border-radius:10px; text-decoration:none; }
+  .btn:hover { filter:brightness(0.95); }
+  .btn:focus-visible { outline:3px solid var(--ink); outline-offset:3px; }
+  .note { color:var(--muted); font-size:0.95rem; margin:0.75rem 0 0; }
+  .sheet { background:var(--paper); border:1px solid var(--line); border-radius:6px; padding:1.25rem; box-shadow:6px 6px 0 var(--accent); transform:rotate(1.5deg); }
+  .sheet b { display:block; margin-bottom:0.75rem; }
+  .row { display:flex; align-items:center; gap:0.75rem; padding:0.55rem 0; border-top:1px solid var(--line); color:var(--muted); font-size:0.95rem; }
+  .row i { width:14px; height:14px; border:2px solid var(--ink); border-radius:3px; flex:none; }
+  section { padding:3rem 0; border-top:1px solid var(--line); }
+  h2 { font-size:1.6rem; margin:0 0 1rem; letter-spacing:-0.01em; }
+  ul.inc { padding-left:1.2rem; margin:0; max-width:60ch; }
+  ul.inc li { margin-bottom:0.5rem; }
+  details { border-bottom:1px solid var(--line); padding:0.9rem 0; max-width:60ch; }
+  summary { font-weight:600; cursor:pointer; }
+  details p { margin:0.5rem 0 0; color:var(--muted); }
+  .final { text-align:center; }
+  footer { padding:2rem 0 3rem; color:var(--muted); text-align:center; font-size:0.9rem; }
+  @media (max-width:760px) { .hero { grid-template-columns:1fr; gap:2.5rem; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>Your Shop Name</header>
+
+  <main>
+    <div class="hero">
+      <div>
+        <h1>Weekly Focus Planner</h1>
+        <p class="lead">One printable page that helps you pick three priorities and get them done each week.</p>
+        <p class="price">₱299 <small>one-time payment</small></p>
+        <!-- PAYMENT_LINK: replace the # below with your PayPal or Gumroad link -->
+        <a class="btn" href="#">Buy and download</a>
+        <p class="note">Instant PDF download after payment.</p>
+      </div>
+      <div class="sheet" aria-hidden="true">
+        <b>This week's top 3</b>
+        <div class="row"><i></i>Finish the main task</div>
+        <div class="row"><i></i>Reply to important messages</div>
+        <div class="row"><i></i>Plan next week</div>
+        <div class="row">Mon · Tue · Wed · Thu · Fri</div>
+      </div>
+    </div>
+
+    <section>
+      <h2>What you get</h2>
+      <ul class="inc">
+        <li>A4 and US Letter PDFs, ready to print at home</li>
+        <li>52 weekly pages, one for each week of the year</li>
+        <li>A monthly overview page and a notes page</li>
+        <li>Light ink design that prints well in black and white</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Questions</h2>
+      <details><summary>How do I get the file?</summary><p>After you pay, you're taken to a download page. A receipt with the link is also emailed to you.</p></details>
+      <details><summary>Can I print it more than once?</summary><p>Yes. Print as many copies as you need for your own use.</p></details>
+      <details><summary>What if I have a problem?</summary><p>Email you@example.com and I'll reply within two days.</p></details>
+    </section>
+
+    <section class="final">
+      <h2>Start your week with a plan</h2>
+      <!-- PAYMENT_LINK: use the same link here -->
+      <a class="btn" href="#">Buy and download</a>
+    </section>
+  </main>
+
+  <footer>&copy; 2026 Your Shop Name</footer>
+</div>
+</body>
+</html>

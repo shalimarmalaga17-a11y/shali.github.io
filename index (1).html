@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your Name – Portfolio</title>
+<meta name="description" content="Personal portfolio of Your Name.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #eef2ec;
+    --ink: #1b2a28;
+    --muted: #55645f;
+    --line: #c9d3c6;
+    --accent: #2447e0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #131b1a; --ink: #e8efe6; --muted: #98a8a1; --line: #2c3a37; --accent: #8fa4ff; }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 1.05rem;
+    line-height: 1.65;
+  }
+  a { color: var(--accent); text-underline-offset: 3px; }
+  a:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 1.5rem; }
+  header { padding: 1.5rem 0; }
+  nav { display: flex; gap: 1.5rem; justify-content: flex-end; }
+  nav a { color: var(--ink); text-decoration: none; font-weight: 600; }
+  nav a:hover { color: var(--accent); }
+  .hero { padding: 5rem 0 4rem; }
+  h1 {
+    font-size: clamp(3rem, 12vw, 6.5rem);
+    line-height: 0.95;
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    margin: 0 0 1.5rem;
+  }
+  .role { font-size: 1.3rem; color: var(--muted); max-width: 32ch; margin: 0; }
+  section { padding: 3rem 0; border-top: 1px solid var(--line); }
+  h2 { font-size: 1.6rem; margin: 0 0 1.25rem; letter-spacing: -0.01em; }
+  p { max-width: 62ch; margin: 0 0 1rem; }
+  .project {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.25rem 1.5rem;
+    padding: 1.25rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .project:first-of-type { padding-top: 0; }
+  .project h3 { margin: 0; font-size: 1.2rem; }
+  .project h3 a { color: var(--ink); }
+  .project p { margin: 0; color: var(--muted); grid-column: 1; }
+  .year { color: var(--muted); grid-row: 1; grid-column: 2; }
+  .skills { display: flex; flex-wrap: wrap; gap: 0.5rem; list-style: none; padding: 0; margin: 0; }
+  .skills li { border: 1px solid var(--line); border-radius: 999px; padding: 0.2rem 0.9rem; }
+  footer { padding: 3rem 0 4rem; color: var(--muted); border-top: 1px solid var(--line); }
+  .mail { font-size: clamp(1.4rem, 5vw, 2rem); font-weight: 600; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <nav aria-label="Main">
+      <a href="#about">About</a>
+      <a href="#work">Work</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="hero">
+      <h1>Your Name</h1>
+      <p class="role">Web designer and developer based in Quezon City.</p>
+    </div>
+
+    <section id="about">
+      <h2>About me</h2>
+      <p>Write two or three sentences here about who you are, what you do, and what you care about. Keep it friendly and specific.</p>
+      <p>Add a second paragraph about your background, your hobbies, or what you're looking for next.</p>
+      <h2 style="margin-top:2rem">Skills</h2>
+      <ul class="skills">
+        <li>Design</li>
+        <li>HTML &amp; CSS</li>
+        <li>JavaScript</li>
+        <li>Writing</li>
+      </ul>
+    </section>
+
+    <section id="work">
+      <h2>Selected work</h2>
+      <div class="project">
+        <h3><a href="#">Project one</a></h3>
+        <span class="year">2026</span>
+        <p>One line describing what it is and what you did.</p>
+      </div>
+      <div class="project">
+        <h3><a href="#">Project two</a></h3>
+        <span class="year">2025</span>
+        <p>One line describing what it is and what you did.</p>
+      </div>
+      <div class="project">
+        <h3><a href="#">Project three</a></h3>
+        <span class="year">2024</span>
+        <p>One line describing what it is and what you did.</p>
+      </div>
+    </section>
+
+    <section id="contact">
+      <h2>Contact</h2>
+      <p>Want to work together or just say hello?</p>
+      <a class="mail" href="mailto:you@example.com">you@example.com</a>
+    </section>
+  </main>
+
+  <footer>
+    <small>&copy; 2026 Your Name</small>
+  </footer>
+</div>
+</body>
+</html>

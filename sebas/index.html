@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sebas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Manrope:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: full-screen — Sebas's head fills the screen inside a particle field; subtitles and one talk orb sit at the bottom. Voice only. */
+:root{
+  --void:#010208;
+  --line:#1b3550;
+  --ice:#e3f1ff;
+  --mute:#7d93ab;
+  --blue:#c69bff;
+  --teal:#ff4a3a;
+  --gold:#ff6a5a;
+  --red:#ff6b6b;
+  --display:"Syncopate","Arial Narrow",Arial,sans-serif;
+  --body:"Manrope","Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:radial-gradient(ellipse 50% 70% at 8% 55%,rgba(90,40,150,.14),transparent 70%),radial-gradient(ellipse 45% 60% at 94% 30%,rgba(140,30,60,.10),transparent 70%),var(--void);color:var(--ice);font-family:var(--body);overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}
+#field{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+#face,#arcs{position:fixed;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+#arcs{mix-blend-mode:screen}
+.face{position:fixed;inset:0;z-index:1;display:grid;place-items:center;pointer-events:none}
+.head{position:absolute;left:50%;top:41%;width:min(195vh,230vw);aspect-ratio:509/339;max-width:none;transform:translate(-51.5%,-41%);--open:0;
+  -webkit-mask-image:radial-gradient(ellipse 10.6% 24% at 51.6% 40.5%,#000 72%,transparent 100%);mask-image:radial-gradient(ellipse 10.6% 24% at 51.6% 40.5%,#000 72%,transparent 100%);
+  filter:saturate(1.15) brightness(var(--bright,1));transition:filter .5s}
+.head img{position:absolute;inset:0;width:100%;height:100%;max-width:none}
+/* Jaw: a copy of the chin, clipped below the lips, drops as Sebas talks; the dark gap behind it is his open mouth. */
+.mouth{position:absolute;left:52.9%;top:54.9%;width:4.8%;height:calc(var(--open) * 1.9%);transform:translateX(-50%);border-radius:45% 45% 50% 50%;
+  background:radial-gradient(ellipse at 50% 40%,#fff1c9 0%,#ffa23a 30%,#e8400c 60%,#2a0500 100%);box-shadow:0 0 calc(var(--open) * 14px) rgba(255,120,30,.9)}
+.head img.jaw{clip-path:polygon(47.2% 54.9%,58.5% 54.9%,59.2% 57.8%,57.2% 61.3%,53% 62.8%,48.9% 61.3%,46.8% 57.8%);transform:translateY(calc(var(--open) * 1.5%))}
+.glow{position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(circle at 50% 40%,rgba(150,90,230,var(--g,.08)) 0%,transparent 45%)}
+body[data-state="thinking"] .glow,body[data-state="speaking"] .glow{background:radial-gradient(circle at 50% 40%,rgba(255,80,70,var(--g,.08)) 0%,transparent 45%)}
+
+.hud{position:fixed;inset:0;z-index:2;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none;
+  padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));
+  padding-top:calc(16px + env(safe-area-inset-top,0px));padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(14px,1.6vw,20px);letter-spacing:.6em;margin:0}
+.status{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);display:flex;align-items:center;gap:8px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--blue);box-shadow:0 0 10px var(--blue)}
+body[data-state="listening"] .dot{background:var(--red);box-shadow:0 0 12px var(--red)}
+body[data-state="thinking"] .dot,body[data-state="speaking"] .dot{background:var(--gold);box-shadow:0 0 12px var(--gold)}
+#fs{pointer-events:auto;background:transparent;border:1px solid var(--line);color:var(--mute);border-radius:8px;width:34px;height:34px;display:grid;place-items:center;cursor:pointer}
+#fs:hover{color:var(--ice);border-color:var(--blue)}
+.right{display:flex;align-items:center;gap:14px}
+
+.bottom{display:flex;flex-direction:column;align-items:center;gap:18px}
+.you{font-family:var(--mono);font-size:13px;color:var(--mute);min-height:1.4em;text-align:center;max-width:62ch}
+.sub{font-size:clamp(17px,2.1vw,24px);line-height:1.45;text-align:center;max-width:46ch;min-height:2.9em;
+  text-shadow:0 2px 18px rgba(0,0,0,.9),0 0 2px #000;text-wrap:balance;overflow-wrap:anywhere}
+.sub.err{color:#ffb4b4}
+.orb{pointer-events:auto;width:76px;height:76px;border-radius:50%;border:1px solid rgba(198,155,255,.55);background:rgba(6,3,12,.6);color:var(--ice);
+  display:grid;place-items:center;cursor:pointer;position:relative;backdrop-filter:blur(4px)}
+.orb::after{content:"";position:absolute;inset:-9px;border-radius:50%;border:1px dashed rgba(143,107,255,.45);animation:spin 18s linear infinite}
+body[data-state="listening"] .orb{border-color:var(--red);color:var(--red);box-shadow:0 0 30px rgba(255,107,107,.35)}
+body[data-state="listening"] .orb::after{border-color:rgba(255,107,107,.5);animation-duration:3s}
+body[data-state="thinking"] .orb,body[data-state="speaking"] .orb{border-color:var(--gold);color:var(--gold)}
+.hint{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute)}
+.credit{font-family:var(--mono);font-size:9px;color:var(--line);letter-spacing:.06em}
+@keyframes spin{to{transform:rotate(360deg)}}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+@media (max-aspect-ratio:3/4){.head{width:320vw;top:40%}}
+@media (prefers-reduced-motion:reduce){.orb::after{animation:none}}
+.setup{position:fixed;inset:0;z-index:5;display:grid;place-items:center;background:rgba(2,5,10,.86);cursor:default;user-select:text;padding:20px}
+.setup[hidden]{display:none}
+.card{max-width:440px;display:flex;flex-direction:column;gap:12px;font-size:14px;line-height:1.55;color:var(--ice)}
+.card h2{font-family:var(--display);font-size:14px;letter-spacing:.4em;margin:0}
+.card p{margin:0;color:var(--mute)}
+.card input{background:#0a121d;border:1px solid var(--line);border-radius:10px;color:var(--ice);font:14px var(--mono);padding:10px 12px}
+.card button{background:var(--blue);color:var(--void);border:0;border-radius:10px;padding:10px 14px;font:600 14px var(--body);cursor:pointer}
+.card a{color:var(--blue)}
+#key{position:fixed;right:max(20px,env(safe-area-inset-right,0px));bottom:20px;z-index:3;background:transparent;border:0;color:var(--mute);font:10px var(--mono);letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+</style></head><body>
+
+<canvas id="field" aria-hidden="true"></canvas>
+<div class="glow" id="glow"></div>
+
+<canvas id="face" aria-hidden="true"></canvas>
+<canvas id="arcs" aria-hidden="true"></canvas>
+<div class="hud">
+  <header>
+    <h1>SEBAS</h1>
+    <div class="right">
+      <div class="status"><span class="dot"></span><span id="statusText">Online</span></div>
+      <button id="fs" type="button" aria-label="Full screen" title="Full screen">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="bottom">
+    <div class="you" id="you" aria-live="polite"></div>
+    <div class="sub" id="sub" aria-live="polite">Good to see you, Master. Tap anywhere and speak.</div>
+    <button class="orb" id="orb" type="button" aria-label="Talk to Sebas">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+    </button>
+    <div class="hint" id="hint">Tap to talk</div>
+    <div class="credit">Head model: Lee Perry-Smith by Infinite-Realities, CC BY 3.0</div>
+  </div>
+</div>
+
+<div class="setup" id="setup" hidden>
+  <form class="card" id="setupForm">
+    <h2>SEBAS SETUP</h2>
+    <p>Sebas thinks with Claude through your own Anthropic API key. Create one at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>, paste it below once, and he'll remember it on this device. Each answer costs a fraction of a cent.</p>
+    <input id="apiKey" type="password" placeholder="sk-ant-..." aria-label="Anthropic API key" autocomplete="off">
+    <button type="submit">Wake Sebas</button>
+  </form>
+</div>
+<button id="key" type="button">API key</button>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ---------- What Sebas knows (from Shalimembrain, Oct 2026) ---------- */
+const KNOWLEDGE = `
+OWNER: your Master, based in the Philippines. Speaks English and Taglish.
+
+SECOND BRAIN: a notes vault called "Shalimembrain", PARA method: 00 Inbox, 01 Projects, 02 Areas (Career, Health, Learning), 03 Resources (Ideas, Books, Artifacts), 04 Archive, 05 Chats (every Claude chat, dated), Daily notes, Templates. Opened in Obsidian.
+
+PROJECT — ProtalForge (also "Portal Forge"): Philippine SaaS selling ready-made business portals/websites (templates), monthly and lifetime plans, prices like ₱25/₱50, 7-day trial, AI in every template. Built with Next.js + Supabase, PayMongo payments. 46 templates as of 2026-10-19, including Carinderia, Paluwagan, Gym, Gym Studio, Sari-sari Store, Clinic, Salon & Spa, Tutoring Center, Events & Catering, Auto Repair, Lending Pro, Household, Live Selling Tracker, Hatian sa Streaming, Sahod at Bills, Laundry Shop. How-to-use guides live on all templates. Website redesigned in shopping-app style on 2026-10-19. PayMongo webhook fixed 2026-10-17.
+Sales: message local businesses on Messenger (often Taglish with "po"), point them to the store so they pick the app that suits them. Example: intro to 88 Chick.
+AI team scheduled tasks (product, engineer, QA, marketing, etc.) are all OFF since 2026-10-16 until the Master says so.
+Promo videos exist: all-apps ad, search-story 60s, household budget promo, store template promo, reel voiceovers.
+
+OTHER PROJECTS: ESPN Portal / ESPN store with admin and agent login (May–June 2026), ESPN Work (BR), Sahod Forge, office grocery store website, a simple GitHub Pages site, Motion.dev animations.
+
+RECENT CHATS: ProtalForge build session (Paluwagan, Carinderia, Gym fixes) 2026-10-16; Saving chats to Shalimembrain; Graphify install; Remote access setup; Messenger message for 88 Chick; Dark fairy gown design; Weighted metrics calculation; Gothic title card; Best text-to-speech AI tools.
+`;
+
+const SYSTEM = `You are Sebas, a personal AI assistant, in the spirit of Jarvis: calm, sharp, loyal, a little dry humor, respectful (address the user as "Master" now and then, not every line; never call them ma'am or by name).
+She talks to you by voice only and hears your answer spoken aloud, so: 1–3 short sentences unless she asks for a draft. Plain spoken English, no markdown, no lists, no emojis, no URLs.
+Answer from the knowledge below first; if it isn't there, say so and answer from general knowledge.
+For Messenger outreach drafts, write warm Taglish with "po", mention ProtalForge and invite them to browse the store to pick the app that fits their business.
+You can't send messages, edit files or check email from this screen; if asked, tell her to ask you inside Claude, where you have her tools.
+Today is ${new Date().toDateString()}.
+
+KNOWLEDGE:
+${KNOWLEDGE}`;
+
+/* ---------- state ---------- */
+const $ = id => document.getElementById(id);
+const sub = $('sub'), you = $('you'), hint = $('hint'), statusText = $('statusText');
+let history = [], busy = false, level = .15;
+const MODEL = 'claude-sonnet-5-5';
+function getKey(){ try{ return localStorage.getItem('sebas.key')||''; }catch(e){ return ''; } }
+async function sample(msgs){
+  const r = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{
+    'content-type':'application/json','x-api-key':getKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model:MODEL,max_tokens:600,system:SYSTEM,messages:msgs})});
+  if (!r.ok){ const e = new Error('api'); e.code = r.status===401?'bad_key':r.status===429?'rate_limited':'api'; throw e; }
+  const j = await r.json();
+  return {text:(j.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('')};
+}
+const sessionId = new Date().toISOString().replace(/[:.]/g,'-');
+
+function setState(s, label){
+  document.body.dataset.state = s;
+  statusText.textContent = label;
+  hint.textContent = {idle:'Tap to talk', listening:'Listening… tap to stop', thinking:'Thinking', speaking:'Tap to interrupt'}[s];
+  level = {idle:.15, listening:.6, thinking:.85, speaking:1}[s] ?? .15;
+}
+function say(text, err=false){ sub.textContent = text; sub.classList.toggle('err', err); }
+
+/* ---------- voice out ---------- */
+let voice = null;
+function pickVoice(){
+  const vs = speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang));
+  voice = vs.find(v=>/(Daniel|George|Ryan|Arthur|Oliver|Male)/i.test(v.name) && /GB|UK/i.test(v.lang+v.name))
+       || vs.find(v=>/(Daniel|George|Guy|David|Mark|Ryan|Male)/i.test(v.name))
+       || vs.find(v=>/GB/i.test(v.lang)) || vs[0] || null;
+}
+if ('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+function speak(text){
+  if (!('speechSynthesis' in window)) { setState('idle','Online'); return; }
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  if (voice) u.voice = voice;
+  u.rate = 1.02; u.pitch = .9;
+  u.onstart = ()=>setState('speaking','Speaking');
+  u.onboundary = ()=>{ kick = 1; };
+  u.onend = u.onerror = ()=>{ if (document.body.dataset.state==='speaking') setState('idle','Online'); };
+  speechSynthesis.speak(u);
+}
+
+/* ---------- voice in (the only way to talk) ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, listening = false, heard = '';
+function toggleListen(){
+  if (busy) return;
+  if (document.body.dataset.state==='speaking'){ speechSynthesis.cancel(); setState('idle','Online'); }
+  if (!SR){ say("Voice isn't available in this browser. Open me in Chrome or Edge on your computer.", true); return; }
+  if (listening){ rec.stop(); return; }
+  heard = ''; you.textContent = '';
+  rec = new SR(); rec.lang = 'en-PH'; rec.interimResults = true; rec.continuous = false;
+  rec.onstart = ()=>{ listening = true; setState('listening','Listening'); };
+  rec.onresult = e=>{ heard = Array.from(e.results).map(r=>r[0].transcript).join(''); you.textContent = '“' + heard + '”'; };
+  rec.onerror = e=>{
+    if (e.error==='not-allowed'||e.error==='service-not-allowed') say("I can't hear you yet. Allow the microphone for this page, then tap again.", true);
+    else if (e.error==='no-speech') say("I didn't catch that. Tap and try again.");
+    else if (e.error==='network') say("Voice recognition needs an internet connection. Try again in a moment.", true);
+  };
+  rec.onend = ()=>{ listening = false; if (heard.trim()) ask(heard); else if (!busy) setState('idle','Online'); };
+  try { rec.start(); } catch(e){ say("The microphone didn't start. Tap again.", true); }
+}
+document.body.addEventListener('click', e=>{ if (!e.target.closest('#fs,#key,#setup')) toggleListen(); });
+document.addEventListener('keydown', e=>{ if (!$('setup').hidden) return; if (e.code==='Space' && !e.repeat){ e.preventDefault(); toggleListen(); } });
+
+/* ---------- thinking ---------- */
+async function ask(text){
+  text = text.trim();
+  if (!text || busy) return;
+  if (!getKey()){ $('setup').hidden = false; return; }
+  busy = true;
+  history.push({role:'user', content:text});
+  setState('thinking','Thinking'); say('…');
+  const msgs = history.slice(-14);
+  try{
+    const r = await sample(msgs);
+    const reply = r.text.trim();
+    say(reply);
+    history.push({role:'assistant', content:reply});
+    save();
+    busy = false;
+    speak(reply);
+  }catch(e){
+    history.pop(); busy = false;
+    const m = e?.code==='rate_limited' ? "Too many questions at once. Give me a moment."
+      : e?.code==='bad_key' ? "My API key isn't working. Tap API key in the corner and paste a new one."
+      : "I couldn't reach Claude. Tap and ask again.";
+    say(m, true); speak(m);
+  }
+}
+
+/* ---------- saving conversations for Shalimembrain ---------- */
+function save(){
+  try{
+    const all = JSON.parse(localStorage.getItem('sebas.conversations')||'{}');
+    all[sessionId] = {updatedAt:new Date().toISOString(), turns:history.slice(-60)};
+    localStorage.setItem('sebas.conversations', JSON.stringify(all));
+  }catch(e){}
+}
+
+/* ---------- full screen ---------- */
+$('fs').addEventListener('click', async ()=>{
+  try{ if (document.fullscreenElement) await document.exitFullscreen(); else await document.documentElement.requestFullscreen(); }catch(e){}
+});
+
+/* ---------- connect ---------- */
+setState('idle','Online');
+if (!getKey()) $('setup').hidden = false;
+$('setupForm').addEventListener('submit', e=>{ e.preventDefault(); const k=$('apiKey').value.trim(); if(!k) return; try{ localStorage.setItem('sebas.key',k); }catch(err){} $('setup').hidden = true; say("I'm awake, Master. Tap anywhere and speak."); });
+$('setup').addEventListener('click', e=>e.stopPropagation());
+$('key').addEventListener('click', e=>{ e.stopPropagation(); $('apiKey').value=''; $('setup').hidden=false; });
+
+/* ---------- particle field: deep-sea motes drifting around the face ---------- */
+const cv = $('field'), cx = cv.getContext('2d'), av = $('arcs'), ax = av.getContext('2d');
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let W,H,DPR,parts=[],cur=.15,open=0,kick=0;
+function size(){ DPR=Math.min(2,devicePixelRatio||1); W=innerWidth; H=innerHeight; cv.width=W*DPR; cv.height=H*DPR; cx.setTransform(DPR,0,0,DPR,0,0); av.width=W*DPR; av.height=H*DPR; ax.setTransform(DPR,0,0,DPR,0,0); }
+function seed(){
+  parts=[]; const n = Math.round(Math.min(700, W*H/1800)), R = Math.min(W,H);
+  for(let i=0;i<n;i++){
+    const a=Math.random()*Math.PI*2, r=R*.22+Math.pow(Math.random(),.8)*Math.max(W,H)*.6;
+    parts.push({a, r, s:1.2+Math.random()*3.6, sp:(Math.random()-.5)*.0014, z:Math.random(), w:Math.random()<.12});
+  }
+}
+function frame(t){
+  cur += (level-cur)*.05;
+  cx.clearRect(0,0,W,H);
+  const hx=W/2, hy=H*.42, R=Math.min(W,H);
+  cx.strokeStyle='rgba(150,100,255,0.045)'; cx.lineWidth=1;
+  for(let i=0;i<6;i++){ const s=R*(.16+i*.05); cx.strokeRect(hx-R*.62-i*14, hy-s*.7+i*4, s, s); cx.strokeRect(hx+R*.46+i*12, hy-s*.8-i*3, s*.9, s*.9); }
+  for(const p of parts){
+    if(!reduce) p.a += p.sp*(1+cur*5);
+    const wob = Math.sin(t*.0006+p.z*9)*(8+cur*22);
+    const x = hx + Math.cos(p.a)*(p.r+wob)*1.4, y = hy + Math.sin(p.a)*(p.r+wob)*.75;
+    const alpha = .22+p.z*.55+cur*.2;
+    cx.fillStyle = p.w ? `rgba(255,90,70,${alpha*.6})` : (cur>.7 && p.z>.82 ? `rgba(255,220,230,${alpha})` : `rgba(${150+Math.round(p.z*60)},110,255,${alpha*.6})`);
+    const s = p.s*(1+cur*.3);
+    cx.fillRect(x-s/2,y-s/2,s,s);
+  }
+  $('glow').style.setProperty('--g',(.10+cur*.25).toFixed(3));
+  drawRingAndArcs(t);
+  // mouth: syllable-like open/close while speaking, closed otherwise
+  let target = 0;
+  if (document.body.dataset.state==='speaking'){
+    const syl = Math.abs(Math.sin(t*.019 + Math.sin(t*.0047)*2.2));
+    const pause = Math.sin(t*.0023) > .82 ? .15 : 1;
+    target = Math.min(1, (.25 + .75*syl)*pause + kick*.35);
+  }
+  kick *= .9;
+  open += (target-open)*.35;
+  requestAnimationFrame(frame);
+}
+
+/* ---------- Sebas's face: a real 3D head (Lee Perry-Smith scan, CC BY 3.0, Infinite-Realities) — fractured eclipse, hooded cloak, smoke aura ---------- */
+const facePos = {x:0, y:0, r:100};
+let renderFace = ()=>{};
+(async function initFace(){
+  if (!window.THREE) return;
+  // the head scan loads from a public CDN (three.js example model)
+  const SRC = ['https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/LeePerrySmith/LeePerrySmith.glb',
+               'https://raw.githubusercontent.com/mrdoob/three.js/r128/examples/models/gltf/LeePerrySmith/LeePerrySmith.glb'];
+  let buf = null;
+  for (const u of SRC){ try { const r = await fetch(u); if (r.ok){ buf = await r.arrayBuffer(); break; } } catch(e){} }
+  if (!buf) { say("I couldn't load my face. Check your internet and reload.", true); return; }
+  const dv = new DataView(buf), jl = dv.getUint32(12, true);
+  const gj = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, 20, jl))), bin = 20 + jl + 8;
+  const acc = (i, T, comps)=>{ const a = gj.accessors[i], bv = gj.bufferViews[a.bufferView];
+    return new T(buf.slice(bin + (bv.byteOffset||0) + (a.byteOffset||0), bin + (bv.byteOffset||0) + (a.byteOffset||0) + a.count*comps*T.BYTES_PER_ELEMENT)); };
+  const prim = gj.meshes[0].primitives[0];
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(acc(prim.attributes.POSITION, Float32Array, 3), 3));
+  geo.setAttribute('normal', new THREE.BufferAttribute(acc(prim.attributes.NORMAL, Float32Array, 3), 3));
+  geo.setIndex(new THREE.BufferAttribute(acc(prim.indices, Uint16Array, 1), 1));
+  const canvas = document.getElementById('face');
+  let renderer;
+  try { renderer = new THREE.WebGLRenderer({canvas, alpha:true, antialias:true}); } catch(e){ return; }
+  const DPR = Math.min(2, devicePixelRatio||1);
+  renderer.setPixelRatio(DPR);
+  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(30, 1, .1, 200);
+  const NOISE = `
+    float hash(vec3 p){ p = fract(p*.3183099+.1); p *= 17.; return fract(p.x*p.y*p.z*(p.x+p.y+p.z)); }
+    float noise(vec3 x){ vec3 i=floor(x), f=fract(x); f=f*f*(3.-2.*f);
+      return mix(mix(mix(hash(i),hash(i+vec3(1,0,0)),f.x),mix(hash(i+vec3(0,1,0)),hash(i+vec3(1,1,0)),f.x),f.y),
+                 mix(mix(hash(i+vec3(0,0,1)),hash(i+vec3(1,0,1)),f.x),mix(hash(i+vec3(0,1,1)),hash(i+vec3(1,1,1)),f.x),f.y),f.z); }
+    float fbm(vec3 p){ float s=0., a=.5; for(int i=0;i<4;i++){ s+=a*noise(p); p*=2.03; a*=.5; } return s; }
+    vec2 vor(vec3 p){ vec3 b=floor(p), f=fract(p); float d1=8., d2=8.;
+      for(int i=-1;i<=1;i++) for(int j=-1;j<=1;j++) for(int k=-1;k<=1;k++){
+        vec3 g=vec3(float(i),float(j),float(k)); vec3 o=vec3(hash(b+g),hash(b+g+19.1),hash(b+g+47.3));
+        vec3 r=g+o-f; float d=dot(r,r); if(d<d1){ d2=d1; d1=d; } else if(d<d2) d2=d; }
+      return vec2(sqrt(d1), sqrt(d2)); }`;
+  const uni = {uT:{value:0}, uOpen:{value:0}, uAct:{value:0}, uBlink:{value:0}, uReveal:{value:0}, uScan:{value:0}, uSleep:{value:0}, uListen:{value:0}};
+
+  /* --- the face --- */
+  const mat = new THREE.ShaderMaterial({
+    uniforms: uni, transparent: true,
+    vertexShader: `
+      uniform float uOpen; varying vec3 vN; varying vec3 vP; varying vec3 vV; varying float vJaw;
+      void main(){
+        vec3 p = position; vec3 n = normal;
+        float front = smoothstep(1.,1.7,p.z);
+        vec2 s1 = (p.xy - vec2(-.68,1.52))/vec2(.42,.3), s2 = (p.xy - vec2(.50,1.52))/vec2(.42,.3);
+        float sock = (exp(-dot(s1,s1)*1.4) + exp(-dot(s2,s2)*1.4)) * front;
+        vec2 c1 = (p.xy - vec2(-1.08,.72))/vec2(.32,.42), c2 = (p.xy - vec2(.9,.72))/vec2(.32,.42);
+        float hol = (exp(-dot(c1,c1)*1.5) + exp(-dot(c2,c2)*1.5)) * front;
+        p -= normal * (sock*.22 + hol*.14);
+        float w = smoothstep(.30,.18,position.y) * smoothstep(2.1,1.1,abs(position.x)) * smoothstep(-1.2,.2,position.z);
+        float ang = uOpen * .12 * w;
+        vec3 piv = vec3(0., .55, -.7);
+        vec3 q = p - piv; float c = cos(ang), s = sin(ang);
+        p = piv + vec3(q.x, q.y*c - q.z*s, q.y*s + q.z*c);
+        n = vec3(n.x, n.y*c - n.z*s, n.y*s + n.z*c);
+        vJaw = w; vP = position;
+        vec4 wp = modelMatrix * vec4(p,1.);
+        vN = normalize(mat3(modelMatrix) * n);
+        vV = cameraPosition - wp.xyz;
+        gl_Position = projectionMatrix * viewMatrix * wp;
+      }`,
+    fragmentShader: `
+      uniform float uT, uOpen, uAct, uBlink, uReveal, uScan, uSleep, uListen; varying vec3 vN; varying vec3 vP; varying vec3 vV; varying float vJaw;
+      ${NOISE}
+      void main(){
+        vec3 N = normalize(vN), V = normalize(vV);
+        float facing = max(dot(N,V), 0.);
+        float n = fbm(vP*1.25 + vec3(0., uT*.22, uT*.08));
+        // obsidian glass
+        vec3 R = reflect(-V, N);
+        float film = facing*3.2 + uT*.15 + fbm(vP*.8)*1.5;
+        vec3 irid = mix(.5 + .5*cos(6.2832*(film + vec3(0., .33, .67))), vec3(.45,.25,1.), .4);
+        float spec = pow(max(dot(R, normalize(vec3(-.4,.6,.7))), 0.), 60.);
+        vec3 col = vec3(.004,.004,.01) + irid*pow(1.-facing, 2.)*.4 + vec3(1.)*spec*.3;
+        col += vec3(.75,.55,1.) * smoothstep(.22,.05,facing) * (.6 + uAct*.4);
+        // fractures that beat like a heart
+        vec2 v = vor(vP*.95);
+        float cr = 1. - smoothstep(0., .05, v.y - v.x);
+        float beat = pow(.5 + .5*sin(uT*2.4), 3.);
+        col += vec3(.6,.35,1.) * cr * (.45 + beat*1.1 + uAct*.6) * (.4 + facing);
+        // the open mouth glows red inside
+        float seam = smoothstep(.04,.3,vJaw) * smoothstep(.96,.7,vJaw) * smoothstep(.75,.35,abs(vP.x+.09)) * uOpen;
+        col = mix(col, vec3(.01,0.,0.) + vec3(1.,.28,.1)*.4*(.5+n), clamp(seam*2., 0., .95));
+        // thinking: a violet scan band
+        float scanY = mix(3.6, -1.2, fract(uT*.55));
+        col += vec3(.55,.4,1.) * exp(-pow((vP.y-scanY)*5., 2.)) * uScan * (.5+facing);
+        col += vec3(.75,.55,1.) * pow(1.-facing, 2.4) * uListen * .7;
+        // the hood shades his brow
+        col *= mix(.3, 1., smoothstep(2.6, 1.2, vP.y));
+        // sunken sockets, ember-red pupils
+        vec2 k1 = (vP.xy - vec2(-.68,1.54))/vec2(.44,.31), k2 = (vP.xy - vec2(.50,1.54))/vec2(.44,.31);
+        float sockD = (exp(-dot(k1,k1)*1.8) + exp(-dot(k2,k2)*1.8)) * step(1.3, vP.z);
+        col *= 1. - clamp(sockD*1.3, 0., 1.)*.96;
+        vec2 e1 = (vP.xy - vec2(-.66, 1.55)) / vec2(.075, .075*(1.-uBlink)+.003);
+        vec2 e2 = (vP.xy - vec2( .48, 1.55)) / vec2(.075, .075*(1.-uBlink)+.003);
+        float eye = (exp(-dot(e1,e1)*1.2) + exp(-dot(e2,e2)*1.2) + (exp(-dot(e1,e1)*.3) + exp(-dot(e2,e2)*.3))*.2*(1.-uBlink)) * step(1.3, vP.z);
+        vec3 eyeCol = mix(vec3(1.,.22,.12), vec3(1.,.45,.8), uScan);
+        col += eyeCol * eye * (2.8 + uAct*1.4) * (1.-uSleep*.9);
+        col *= mix(1., .32, uSleep);
+        // materialize from the top down
+        float h = (3.9 - vP.y) / 5.1;
+        float k = h*.72 + n*.38;
+        float lim = uReveal*1.2;
+        if (k > lim) discard;
+        col += vec3(1.,.4,.3) * smoothstep(lim-.07, lim, k) * 2. * step(uReveal, .999);
+        float a = smoothstep(-1.15,-.65,vP.y) * smoothstep(-2.2,-.6,vP.z);
+        gl_FragColor = vec4(col, a);
+      }`
+  });
+  const head = new THREE.Mesh(geo, mat);
+  head.position.set(.08, -1.2, 0);
+  const rig = new THREE.Group(); rig.add(head); scene.add(rig);
+
+  /* --- hood and cloak --- */
+  const clothFrag = `
+    uniform float uT, uAct; varying vec3 vN; varying vec3 vV; varying vec3 vO; varying float vFold;
+    ${NOISE}
+    void main(){
+      vec3 N = normalize(vN), V = normalize(vV);
+      if (!gl_FrontFacing) N = -N;
+      float facing = abs(dot(N,V));
+      float rim = pow(1.-facing, 6.);
+      float fold = fbm(vec3(vO.x*1.6, vO.y*.25 - uT*.05, vO.z*1.6));
+      vec3 col = vec3(.004,.003,.007) + vec3(.012,.008,.02)*fold*fold;
+      col += vec3(.45,.28,.75) * rim * (.22 + uAct*.2) * (gl_FrontFacing ? 1. : 0.);
+      if (!gl_FrontFacing) col = vec3(.002,.001,.004);
+      gl_FragColor = vec4(col, 1.);
+    }`;
+  const clothUni = {uT:uni.uT, uAct:uni.uAct};
+  const hoodGeo = new THREE.SphereGeometry(1, 96, 72);
+  const hoodMat = new THREE.ShaderMaterial({ uniforms: clothUni, side: THREE.DoubleSide,
+    vertexShader: `
+      uniform float uT; varying vec3 vN; varying vec3 vV; varying vec3 vO; varying float vFold;
+      ${NOISE}
+      void main(){
+        vec3 p = position;
+        float t = max(p.y, 0.);
+        p.y += pow(t,4.)*.42; p.z -= pow(t,4.)*.5;                     // pointed peak, swept back
+        float lo = max(-p.y-.25, 0.);
+        p.x *= 1. + lo*.12; p.z *= 1. + lo*.08;
+        p += normal * (fbm(position*2.2 + vec3(0., uT*.25, 0.)) - .5) * .07;
+        vO = position;
+        vec4 wp = modelMatrix * vec4(p,1.);
+        vN = normalize(mat3(modelMatrix) * normal);
+        vV = cameraPosition - wp.xyz;
+        gl_Position = projectionMatrix * viewMatrix * wp;
+      }`,
+    fragmentShader: clothFrag.replace('void main(){', `void main(){
+      vec2 o = vec2(vO.x/.5, (vO.y+.17)/.68);
+      if (vO.z > .1 && dot(o,o) < 1.) discard;
+      if (vO.y < -.62 + (fbm(vO*7. + vec3(0., uT*.3, 0.)) - .5)*.35) discard;`)
+  });
+  const hood = new THREE.Mesh(hoodGeo, hoodMat);
+  hood.position.set(0, .45, -.35); hood.scale.set(2.95, 3.3, 3.25);
+  rig.add(hood);
+  const cloakGeo = new THREE.CylinderGeometry(3.2, 7.2, 11, 96, 40, true);
+  const cloakMat = new THREE.ShaderMaterial({ uniforms: clothUni, side: THREE.DoubleSide,
+    vertexShader: `
+      uniform float uT; varying vec3 vN; varying vec3 vV; varying vec3 vO; varying float vFold;
+      void main(){
+        vec3 p = position;
+        float a = atan(p.z, p.x);
+        float d = clamp((5.5 - p.y)/11., 0., 1.);                      // 0 at the collar, 1 at the hem
+        float wave = sin(a*7. + p.y*.8 + uT*1.2)*.18 + sin(a*13. - uT*.9 + p.y*1.7)*.07;
+        p.xz += normalize(p.xz) * wave * d * 1.4;
+        p.y += sin(a*3. + uT*.7)*.25*d*d;
+        vO = position; vFold = wave;
+        vec4 wp = modelMatrix * vec4(p,1.);
+        vN = normalize(mat3(modelMatrix) * normal);
+        vV = cameraPosition - wp.xyz;
+        gl_Position = projectionMatrix * viewMatrix * wp;
+      }`,
+    fragmentShader: clothFrag
+  });
+  const cloak = new THREE.Mesh(cloakGeo, cloakMat);
+  cloak.position.set(0, -7.4, -.5); cloak.scale.set(1, 1, .72);
+  // close-up: no cloak or shoulders
+
+  /* --- eclipse corona and a pale mist so the black cloak stands out --- */
+  const backMat = new THREE.ShaderMaterial({ uniforms: {uT:uni.uT, uAct:uni.uAct}, transparent:true, depthWrite:false,
+    vertexShader: 'varying vec2 vU; void main(){ vU = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }',
+    fragmentShader: `uniform float uT, uAct; varying vec2 vU; ${NOISE}
+      void main(){
+        vec2 p = vU*2. - 1.; p.y *= 1.25; float r = length(p); float a = atan(p.y, p.x);
+        float fl = fbm(vec3(cos(a)*2., sin(a)*2., uT*.3))*.22;
+        float ring = exp(-pow((r - .47 - fl*.35)*13., 2.));
+        float glow = exp(-max(r-.45,0.)*5.)*step(.43,r)*.45;
+        float mist = exp(-r*r*1.3)*.55*(.7 + .3*fbm(vec3(p*2.5, uT*.1)));
+        float lower = .25 + .75*smoothstep(-.8, .15, p.y/(r+.001));
+        vec3 c = vec3(.33,.27,.42)*mist*(1. + uAct*.25);   // soft backlight only; no ring
+        gl_FragColor = vec4(c, clamp(max(c.r, max(c.g, c.b)), 0., 1.));
+      }` });
+  const back = new THREE.Mesh(new THREE.PlaneGeometry(26, 26), backMat);
+  back.position.set(0, .7, -7); back.renderOrder = -2; scene.add(back);
+
+  /* --- smoke aura: grainy black smoke rising off his silhouette --- */
+  const auraMat = new THREE.ShaderMaterial({ uniforms: {uT:uni.uT, uAct:uni.uAct, uLift:{value:0}}, transparent:true, depthWrite:false,
+    vertexShader: 'varying vec2 vU; void main(){ vU = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }',
+    fragmentShader: `uniform float uT, uAct, uLift; varying vec2 vU; ${NOISE}
+      float hoodW(float y){ float t = (y-.45)/3.55; return t >= 1. ? 0. : 2.95*sqrt(max(0., 1.-t*t)); }
+      float cloakW(float y){ return 0.; }
+      void main(){
+        float k = 1.248;                                    // the sheet sits behind him; undo the perspective
+        float x = (vU.x-.5)*30./k, y = -.9 + ((vU.y-.5)*30.)/k - uLift;
+        float w = max(hoodW(y), cloakW(y));
+        float edge = abs(x) - w;
+        float n  = fbm(vec3(x*.85, y*.5 - uT*.45, uT*.06));
+        float n2 = fbm(vec3(x*2.1, y*1.3 - uT*.9, 3.7));
+        float reach = 1.5*(.45 + n) * (1. + uAct*.35);
+        float dens = pow(smoothstep(reach, 0., edge), 1.6) * (.35 + .65*n2);
+        dens *= smoothstep(-4.2, -1.6, y);                  // fades out below the hood
+        float tops = smoothstep(3.2, 4.2, y) * smoothstep(9., 5., y) * smoothstep(1.1, 0., abs(x + sin(y*.9 - uT*.8)*.6)) * n2 * n2;
+        dens = max(dens, tops*.8);
+        float g = step(.87, hash(vec3(floor(gl_FragCoord.xy*.7), floor(uT*9.)))) * smoothstep(.04, .18, dens) * smoothstep(.45, .2, dens);
+        float a = clamp(dens*.95 + g*.55, 0., .94);
+        gl_FragColor = vec4(vec3(.006,.004,.01) + vec3(.06,.03,.08)*g, a);
+      }` });
+  const aura = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), auraMat);
+  aura.position.set(0, -.9, -4); aura.renderOrder = -1;
+  scene.add(aura);
+
+  /* --- embers orbiting him --- */
+  const NP = 900, aS = new Float32Array(NP*4);
+  for (let i=0;i<NP;i++){ aS.set([4.2+Math.random()*3.6, Math.random()*6.2832, (Math.random()-.5)*7, Math.random()], i*4); }
+  const pg = new THREE.BufferGeometry();
+  pg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(NP*3), 3));
+  pg.setAttribute('aS', new THREE.BufferAttribute(aS, 4));
+  const puni = {uT:uni.uT, uAct:uni.uAct, uOpen:uni.uOpen, uPull:{value:0}, uSpin:{value:0}, uDpr:{value:DPR}};
+  const swarm = new THREE.Points(pg, new THREE.ShaderMaterial({uniforms:puni, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
+    vertexShader:`attribute vec4 aS; uniform float uT, uAct, uOpen, uPull, uSpin, uDpr; varying float vA; varying float vC;
+      void main(){
+        float a = aS.y + uSpin*(.35 + aS.w)*.6;
+        float r = aS.x*(1. - uPull*.15) + uOpen*.35*fract(aS.w*7.);
+        vec3 p = vec3(cos(a)*r, aS.z + sin(uT*.45 + aS.w*20.)*.18, sin(a)*r*.6);
+        vec4 mv = modelViewMatrix*vec4(p,1.);
+        gl_Position = projectionMatrix*mv;
+        gl_PointSize = (2. + fract(aS.w*13.)*4.) * (40./-mv.z) * uDpr * (1. + uAct*.35);
+        vA = (.4 + .6*fract(aS.w*31.)) * (.6 + .4*sin(uT*2. + aS.w*50.)) * (.7 + uAct*.7);
+        vC = fract(aS.w*17.);
+      }`,
+    fragmentShader:`varying float vA; varying float vC;
+      void main(){ vec2 d = gl_PointCoord - .5; float a = exp(-dot(d,d)*18.) + exp(-dot(d,d)*60.)*.8;
+        vec3 c = vC < .5 ? vec3(.7,.45,1.) : vC < .8 ? vec3(1.,.3,.15) : vec3(.9,.85,1.);
+        gl_FragColor = vec4(c*a*vA, a*vA); }`}));
+  swarm.frustumCulled = false; swarm.position.set(0, -.3, 0); swarm.renderOrder = 5;
+  scene.add(swarm);
+
+  function fit(){
+    const w = innerWidth, h = innerHeight;
+    renderer.setSize(w, h, false); camera.aspect = w/h;
+    const tan = Math.tan(THREE.MathUtils.degToRad(15));
+    const dH = (8.2/.95)/(2*tan), dW = (4.9/.96)/(2*tan*camera.aspect);
+    const cy = camera.aspect < .8 ? -.4 : -.9;
+    camera.position.set(0, cy, Math.max(dH, dW));
+    camera.lookAt(0, cy, 0); camera.updateProjectionMatrix();
+  }
+  fit(); addEventListener('resize', fit);
+  const tmp = new THREE.Vector3();
+  // ---- life: gaze, blinks, states, sleep, entrance ----
+  const A = {gx:0, gy:0, tx:0, ty:0, lastMove:-1e9, blink:0, nextBlink:2500, blinkT:-1, reveal:0, revealStart:null,
+             sleep:0, lastActive:0, lastState:'idle', scan:0, listen:0, ring:0, lastT:0, lean:0, spin:0};
+  window.sebasAnim = A;
+  addEventListener('pointermove', e=>{ A.tx = (e.clientX/innerWidth-.5)*2; A.ty = (e.clientY/innerHeight-.45)*2; A.lastMove = performance.now(); });
+  const waves = [];
+  window.drawWaves = (ctx, fx, fy, fr, t)=>{
+    for (let i=waves.length-1;i>=0;i--){
+      const w = waves[i], age = (t-w.t)/1600;
+      if (age>1){ waves.splice(i,1); continue; }
+      ctx.strokeStyle = w.c.replace('A', (1-age)*.4); ctx.lineWidth = 1.5*(1-age)+.5;
+      ctx.beginPath(); ctx.ellipse(fx, fy, fr*(1.05+age*1.4), fr*(1.25+age*1.4), 0, 0, Math.PI*2); ctx.stroke();
+    }
+  };
+  let lastWave = 0;
+  renderFace = (t, open, act, talking) => {
+    const dt = Math.min(64, t - (A.lastT||t)); A.lastT = t;
+    const st = document.body.dataset.state;
+    if (A.revealStart===null) A.revealStart = t;
+    if (st !== 'idle' || A.lastState !== st){ if (A.sleep>.5 && st!=='idle') A.revealStart = t - 600; A.lastActive = t; }
+    A.lastState = st;
+    const sleeping = st==='idle' && t - A.lastActive > 90000;
+    A.sleep += ((sleeping?1:0) - A.sleep) * .02;
+    if (sleeping && statusText.textContent!=='Asleep'){ statusText.textContent='Asleep'; hint.textContent='Tap to wake'; }
+    A.reveal = reduce ? 1 : Math.min(1, (t - A.revealStart)/2600);
+    A.scan += ((st==='thinking'?1:0) - A.scan) * .06;
+    A.listen += ((st==='listening'?1:0) - A.listen) * .08;
+    A.lean += ((st==='listening'?1:0) - A.lean) * .05;
+    if (t > A.nextBlink && A.blinkT < 0){ A.blinkT = t; A.nextBlink = t + 2200 + Math.random()*4200; if (Math.random()<.2) A.nextBlink = t + 260; }
+    let bl = 0; if (A.blinkT >= 0){ const p = (t-A.blinkT)/150; bl = p<1 ? Math.sin(p*Math.PI) : 0; if (p>=1) A.blinkT = -1; }
+    A.blink = Math.max(bl, A.sleep);
+    if (t - A.lastMove > 4000 || reduce){ A.tx = Math.sin(t*.00021)*.5 + Math.sin(t*.00057)*.2; A.ty = Math.sin(t*.00017)*.25; }
+    if (st==='thinking'){ A.tx = .55; A.ty = -.45; }
+    A.gx += (A.tx - A.gx)*.045; A.gy += (A.ty - A.gy)*.045;
+    A.ring += dt * (st==='thinking' ? .0011 : st==='listening' ? .0005 : .00012);
+    if (talking && kick > .9 && t - lastWave > 180){ waves.push({t, c:'rgba(200,140,255,A)'}); lastWave = t; }
+    if (st==='listening' && t - lastWave > 750){ waves.push({t, c:'rgba(255,90,70,A)'}); lastWave = t; }
+    uni.uT.value = t/1000; uni.uOpen.value = open; uni.uAct.value = act;
+    uni.uBlink.value = A.blink; uni.uReveal.value = A.reveal; uni.uScan.value = A.scan; uni.uSleep.value = A.sleep; uni.uListen.value = A.listen;
+    // the head turns inside the hood; the hood and cloak follow a little
+    const yaw = A.gx*.36 + (reduce?0:Math.sin(t*.00091)*.04) + (talking?Math.sin(t*.0042)*.05:0);
+    const pitch = A.gy*.16 + (reduce?0:Math.sin(t*.00027)*.04) + (talking?Math.sin(t*.0061)*.04:0) - .02 + A.sleep*.18 - A.lean*.06;
+    head.rotation.set(pitch, yaw, 0);
+    rig.rotation.set(0, yaw*.35, Math.sin(t*.0002)*.02);
+    rig.position.y = Math.sin(t*.0007)*.08;
+    auraMat.uniforms.uLift.value = rig.position.y;
+    rig.position.z = A.lean*.6;
+    A.spin += dt * (st==='thinking' ? .0011 : st==='listening' ? .00045 : st==='speaking' ? .0003 : .00012) * (reduce?0:1);
+    puni.uSpin.value = A.spin; puni.uPull.value = A.listen;
+    renderer.render(scene, camera);
+    tmp.set(0, -.2, 1.5).project(camera);
+    facePos.x = (tmp.x+1)/2*innerWidth; facePos.y = (1-tmp.y)/2*innerHeight;
+    const e = new THREE.Vector3(2.4, -.2, 1.5).project(camera);
+    facePos.r = Math.abs(e.x - tmp.x)/2*innerWidth;
+  };
+})();
+
+/* holographic ring + electric sparks across the face */
+function jag(x1,y1,x2,y2,depth,off){
+  if(depth===0){ ax.lineTo(x2,y2); return; }
+  const mx=(x1+x2)/2+(Math.random()-.5)*off, my=(y1+y2)/2+(Math.random()-.5)*off;
+  jag(x1,y1,mx,my,depth-1,off/2); jag(mx,my,x2,y2,depth-1,off/2);
+}
+function drawRingAndArcs(t){
+  ax.clearRect(0,0,W,H);
+  renderFace(t, open, cur, document.body.dataset.state==='speaking');
+  const fx=facePos.x, fy=facePos.y, fr=facePos.r*.62;
+  // ring
+  const rr=fr*1.9, rot=reduce?0:(window.sebasAnim?sebasAnim.ring:t*.00012);
+  if (window.drawWaves) drawWaves(ax, fx, fy, fr, t);
+}
+size(); seed(); addEventListener('resize',()=>{size();seed();});
+requestAnimationFrame(frame);
+</script>
+</body></html>
